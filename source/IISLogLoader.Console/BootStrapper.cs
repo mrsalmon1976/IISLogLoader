@@ -50,6 +50,10 @@ namespace IISLogLoader.Console
                     {
                         services.AddHostedService<LogLoaderBackgroundWorker>();
                     }
+                    else
+                    {
+                        services.AddTransient<LogLoaderConsoleWorker>();
+                    }
                 });
 
             return builder.Build();

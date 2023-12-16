@@ -19,21 +19,17 @@ try
 {
     if (runAsService)
     {
+        // LogLoaderBackgroundWorker will run as a service
+        logger.LogInformation("IISLogReader run started in service mode");
         host.Run();
     }
     else
     {
+        // we've run as a console - just execute the LogLoaderWorker once
         logger.LogInformation("IISLogReader run started in console mode");
-        IUserConfigRepository userConfigRepo = host.Services.GetService<IUserConfigRepository>()!;
-        ILogLoaderWorker logLoaderWorker = host.Services.GetService<ILogLoaderWorker>()!;
-        await logLoaderWorker.ExecuteAsync(userConfigRepo.Load());
-        logger.LogInformation("IISLogReader run complete");
-        if (Debugger.IsAttached)
-        {
-            Console.WriteLine();
-            Console.WriteLine("Execution complete - hit enter to close the program.");
-            Console.ReadLine();
-        }
+
+        LogLoaderConsoleWorker worker = host.Services.GetService<LogLoaderConsoleWorker>()!;
+        worker.Run().GetAwaiter().GetResult();
     }
 }
 catch (Exception ex)
@@ -42,4 +38,10 @@ catch (Exception ex)
     throw;
 }
 
+if (Debugger.IsAttached)
+{
+    Console.WriteLine();
+    Console.WriteLine("Execution complete - hit enter to close the program.");
+    Console.ReadLine();
+}
 Environment.Exit(0);
