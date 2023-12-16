@@ -1,20 +1,13 @@
-﻿using AutoBogus;
-using Bogus;
-using IISLogLoader.Common.Data;
+﻿using IISLogLoader.Common.Data;
 using IISLogLoader.Common.Models;
 using IISLogLoader.Test.Common;
 using IISLogLoader.Test.Common.TestDatabases.SqlServer;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IISLogLoader.Common.Tests.Data
 {
     [TestFixture]
+    [Category("RequiresDb")]
     public class SqlServerLogDbContextTests
     {
         [SetUp] 

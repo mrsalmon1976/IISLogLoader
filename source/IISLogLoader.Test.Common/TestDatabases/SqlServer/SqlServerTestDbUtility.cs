@@ -141,7 +141,7 @@ namespace IISLogLoader.Test.Common.TestDatabases.SqlServer
                 {
                     File.Delete(file);
                 }
-                catch (IOException ex)
+                catch (IOException)
                 {
                     // we just swallow this - the DB file remains locked until the engine releases, so we'll get it eventually
                 }

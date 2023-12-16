@@ -12,13 +12,6 @@ namespace IISLogLoader.Test.Common.TestAssets
     {
         public static string LogFile {  get { return "IISLogLoader.Test.Common.TestAssets.LogFile.log"; } }
 
-        public static Stream ReadTextStream(string resourceName)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            return assembly.GetManifestResourceStream(resourceName);
-
-        }
-
         public static string ReadResource(string resourceName)
         {
             Assembly? assembly = Assembly.GetAssembly(typeof(TestAssets));
