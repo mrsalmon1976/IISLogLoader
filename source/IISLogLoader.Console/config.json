@@ -1,0 +1,15 @@
+{
+  "PollIntervalMinutes": 1,
+  "LogStores": [
+    {
+      "Name": "Example",
+      "DbType": "SqlServer",
+      "ConnectionString": "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFileName=C:\\Matt\\code\\IISLogLoader\\example\\IISLogLoaderExample.mdf;Integrated Security=true;",
+      "TableName": "dbo.IISLog",
+      "FileSearchPattern": "*.log",
+      "WatchFolders": [
+        "C:\\Matt\\code\\IISLogLoader\\example"
+      ]
+    }
+  ]
+}

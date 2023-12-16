@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="TestAssets\LogFile.log" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="TestAssets\LogFile.log" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoBogus" Version="2.13.1" />
+    <PackageReference Include="Dapper" Version="2.1.24" />
+    <PackageReference Include="Faker.Net" Version="2.0.154" />
+    <PackageReference Include="NSubstitute" Version="5.1.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IISLogLoader.Common\IISLogLoader.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TestDatabases\SqlServer\SqlServerTestDb.mdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestDatabases\SqlServer\SqlServerTestDb_log.ldf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
