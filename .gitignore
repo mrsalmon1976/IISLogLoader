@@ -398,3 +398,5 @@ FodyWeavers.xsd
 *.sln.iml
 
 example/
+deployment/build/
+deployment/*.zip

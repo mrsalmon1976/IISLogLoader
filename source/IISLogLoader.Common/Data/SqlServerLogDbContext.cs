@@ -83,6 +83,7 @@ namespace IISLogLoader.Common.Data
         {
             EnsureConnectionOpen();
             SqlBulkCopy sqlBulkCopy = new SqlBulkCopy(_sqlConnection, SqlBulkCopyOptions.Default, _transaction);
+            sqlBulkCopy.BulkCopyTimeout = 600;
             sqlBulkCopy.DestinationTableName = _tableName;
             for (int i = 0; i < dataColumns.Count; i++)
             {

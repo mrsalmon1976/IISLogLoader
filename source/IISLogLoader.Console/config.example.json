@@ -1,0 +1,15 @@
+{
+  "PollIntervalMinutes": 60,
+  "LogStores": [
+    {
+      "Name": "SqlServerExample",
+      "DbType": "SqlServer",
+      "ConnectionString": "Data Source=MySqlServer;Initial Catalog=MyDatabase;Integrated Security=true;",
+      "TableName": "dbo.IISLog",
+      "FileSearchPattern": "*.log",
+      "WatchFolders": [
+        "\\\\myfileserver\\myfileshare\\mylogfiles"
+      ]
+    }
+  ]
+}
