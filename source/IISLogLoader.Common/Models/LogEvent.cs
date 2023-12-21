@@ -119,32 +119,6 @@ namespace IISLogLoader.Common.Models
         /// </summary>
         public int? TimeTaken { get; set; }
 
-        public int GetHashValue()
-        {
-            return new 
-            {
-                DateTime,
-                ClientIpAddress,
-                BytesReceived,
-                Cookie,
-                Host,
-                Method,
-                Referrer,
-                UriQuery,
-                UriStem,
-                UserAgent,
-                UserName,
-                ProtocolVersion,
-                ServerName,
-                ServerIpAddress,
-                ServerPort,
-                SiteName,
-                BytesSent,
-                StatusCode,
-                ProtocolSubstatus,
-                WindowsStatusCode,
-                TimeTaken
-            }.GetHashCode();
-        }
+
     }
 }

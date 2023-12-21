@@ -1,5 +1,6 @@
 ﻿using IISLogLoader.Common.Data;
 using IISLogLoader.Common.IO;
+using IISLogLoader.Common.Models;
 using IISLogLoader.Console.Factories;
 using IISLogLoader.Console.Models;
 using IISLogLoader.Console.Repositories;
@@ -117,7 +118,7 @@ namespace IISLogLoader.Console.Tests.Services
 
             // assert
             fileLoadService.Received(1).FindModifiedFiles(watchFolders[0], logStorageInfo.FileSearchPattern, journal);
-            journal.DidNotReceive().Update(Arg.Any<FileInfoWrapper>());
+            journal.DidNotReceive().Update(Arg.Any<FileInfoWrapper>(), Arg.Any<bool>(), Arg.Any<string?>());
         }
 
         [Test]
@@ -142,7 +143,9 @@ namespace IISLogLoader.Console.Tests.Services
             ILogDbContextFactory logDbContextFactory = new SubstituteBuilder<ILogDbContextFactory>().Build();
             logDbContextFactory.GetDbContext(logStorageInfo.DbType, logStorageInfo.ConnectionString, logStorageInfo.TableName).Returns(logDbContext);
 
-            IFileImportService fileImportService = new SubstituteBuilder<IFileImportService>().Build(); 
+            IFileImportService fileImportService = new SubstituteBuilder<IFileImportService>().Build();
+            LogFileLoadResult loadResult = new SubstituteBuilder<LogFileLoadResult>().WithProperty(x => x.Success, true).Build();
+            fileImportService.ImportLogFile(Arg.Any<ILogDbContext>(), Arg.Any<string>()).Returns(loadResult);
 
             // execute
             ILogOrchestrationService orchestrator = CreateOrchestrationService(journalRepository: journalRepository, logDbContextFactory: logDbContextFactory, fileLoadService: fileLoadService, fileImportService: fileImportService);
@@ -176,16 +179,56 @@ namespace IISLogLoader.Console.Tests.Services
             IFileLoadService fileLoadService = new SubstituteBuilder<IFileLoadService>().Build();
             fileLoadService.FindModifiedFiles(watchFolders[0], logStorageInfo.FileSearchPattern, journal).Returns(modifiedFiles);
 
+            IFileImportService fileImportService = new SubstituteBuilder<IFileImportService>().Build();
+            LogFileLoadResult loadResult = new SubstituteBuilder<LogFileLoadResult>().WithProperty(x => x.Success, true).Build();
+            fileImportService.ImportLogFile(Arg.Any<ILogDbContext>(), Arg.Any<string>()).Returns(loadResult);
+
             // execute
-            ILogOrchestrationService orchestrator = CreateOrchestrationService(journalRepository: journalRepository, fileLoadService: fileLoadService);
+            ILogOrchestrationService orchestrator = CreateOrchestrationService(journalRepository: journalRepository, fileLoadService: fileLoadService, fileImportService: fileImportService);
             orchestrator.ProcessLogs(logStorageInfo).GetAwaiter().GetResult();
 
             // assert
-            journal.Received(modifiedFiles.Count).Update(Arg.Any<FileInfoWrapper>());
+            journal.Received(modifiedFiles.Count).Update(Arg.Any<FileInfoWrapper>(), true, null);
             journalRepository.Received(modifiedFiles.Count).Save(journal);
             foreach (FileInfoWrapper fiw in modifiedFiles)
             {
-                journal.Received(1).Update(fiw);
+                journal.Received(1).Update(fiw, true, null);
+            }
+        }
+
+        [Test]
+        public void ProcessLogs_ModifiedFilesExistButHaveErrors_JournalUpdatedWithErrorMessage()
+        {
+            // setup
+            string[] watchFolders = { "folder1" };
+            LogStorageInfo logStorageInfo = new SubstituteBuilder<LogStorageInfo>()
+                .WithRandomProperties()
+                .WithProperty(x => x.WatchFolders, watchFolders)
+                .Build();
+
+            IJournalRepository journalRepository = new SubstituteBuilder<IJournalRepository>().Build();
+            Journal journal = new SubstituteBuilder<Journal>().WithRandomProperties().Build();
+            journalRepository.Load(Arg.Any<string>()).Returns(journal);
+
+            List<FileInfoWrapper> modifiedFiles = CreateModifiedFiles();
+            IFileLoadService fileLoadService = new SubstituteBuilder<IFileLoadService>().Build();
+            fileLoadService.FindModifiedFiles(watchFolders[0], logStorageInfo.FileSearchPattern, journal).Returns(modifiedFiles);
+
+            IFileImportService fileImportService = new SubstituteBuilder<IFileImportService>().Build();
+            string errorMessage = RandomData.String.Letters();
+            LogFileLoadResult loadResult = new SubstituteBuilder<LogFileLoadResult>().WithProperty(x => x.Success, false).WithProperty(x => x.ErrorMessage, errorMessage).Build();
+            fileImportService.ImportLogFile(Arg.Any<ILogDbContext>(), Arg.Any<string>()).Returns(loadResult);
+
+            // execute
+            ILogOrchestrationService orchestrator = CreateOrchestrationService(journalRepository: journalRepository, fileLoadService: fileLoadService, fileImportService: fileImportService);
+            orchestrator.ProcessLogs(logStorageInfo).GetAwaiter().GetResult();
+
+            // assert
+            journal.Received(modifiedFiles.Count).Update(Arg.Any<FileInfoWrapper>(), false, errorMessage);
+            journalRepository.Received(modifiedFiles.Count).Save(journal);
+            foreach (FileInfoWrapper fiw in modifiedFiles)
+            {
+                journal.Received(1).Update(fiw, false, errorMessage);
             }
         }
 

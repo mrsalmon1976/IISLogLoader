@@ -163,7 +163,7 @@ namespace IISLogLoader.Console.Tests.Services
         }
 
         [Test]
-        public void LoadFile_LoadsDataAsLogEvents()
+        public void LoadFile_OnSuccess_LoadsDataAsLogEvents()
         {
             // setup
             string logFilePath = Path.ChangeExtension(Path.Combine(TestFolder, Path.GetRandomFileName()), ".log");
@@ -172,14 +172,34 @@ namespace IISLogLoader.Console.Tests.Services
 
             // execute
             IFileLoadService fileLoadService = CreateService();
-            IEnumerable<LogEvent> logEvents = fileLoadService.LoadFile(logFilePath).Result;
+            LogFileLoadResult loadResult = fileLoadService.LoadFile(logFilePath);
 
             // assert
-            Assert.That(logEvents.Count(), Is.EqualTo(300));
+            Assert.That(loadResult.Success, Is.True);
+            Assert.That(loadResult.LogEvents!.Count(), Is.EqualTo(300));
 
-            LogEvent le = logEvents.First();
+            LogEvent le = loadResult.LogEvents!.First();
             Assert.That(le.ServerIpAddress, Is.EqualTo("172.168.1.112"));
 
+        }
+
+        [Test]
+        public void LoadFile_OnFailure_SuccessIsFalse()
+        {
+            // setup
+            string logFilePath = Path.ChangeExtension(Path.Combine(TestFolder, Path.GetRandomFileName()), ".log");
+            string logFileText = TestAssets.ReadResource(TestAssets.InvalidLogFile);
+            File.WriteAllText(logFilePath, logFileText);
+
+            // execute
+            IFileLoadService fileLoadService = CreateService();
+            LogFileLoadResult loadResult = fileLoadService.LoadFile(logFilePath);
+
+            // assert
+            Assert.That(loadResult.Success, Is.False);
+            Assert.That(loadResult.ErrorMessage, Is.Not.Null);
+            Assert.That(loadResult.ErrorMessage, Is.Not.Empty);
+            Assert.That(loadResult.LogEvents, Is.Null);
         }
 
         private IFileLoadService CreateService(IDirectoryWrapper? dirWrapper = null, IFileWrapper? fileWrapper = null)

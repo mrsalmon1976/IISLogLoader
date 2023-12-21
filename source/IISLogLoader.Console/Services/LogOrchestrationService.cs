@@ -1,5 +1,6 @@
 ﻿using IISLogLoader.Common.Data;
 using IISLogLoader.Common.IO;
+using IISLogLoader.Common.Models;
 using IISLogLoader.Console.Factories;
 using IISLogLoader.Console.Models;
 using IISLogLoader.Console.Repositories;
@@ -58,11 +59,15 @@ namespace IISLogLoader.Console.Services
                         Stopwatch stopwatch = Stopwatch.StartNew();
                         _logger.LogInformation("Loading file {fileName} [{filePath}]", fileInfo.Name, fileInfo.FullName);
                         dbContext.BeginTransaction();
-                        await _fileImportService.ImportLogFile(dbContext, fileInfo.FullName);
-                        journal.Update(fileInfo);
+                        LogFileLoadResult loadResult = await _fileImportService.ImportLogFile(dbContext, fileInfo.FullName);
+                        journal.Update(fileInfo, loadResult.Success, loadResult.ErrorMessage);
                         _journalRepository.Save(journal);
                         dbContext.Commit();
-                        _logger.LogInformation("Completed load of file {fileName} in {seconds} seconds [{filePath}]", fileInfo.Name, stopwatch.Elapsed.TotalSeconds, fileInfo.FullName);
+                        _logger.LogInformation("{loadResult} load of file {fileName} in {seconds} seconds [{filePath}]"
+                            , (loadResult.Success ? "Successful" : "FAILED")
+                            , fileInfo.Name
+                            , stopwatch.Elapsed.TotalSeconds
+                            , fileInfo.FullName);
                     }
 
                 }

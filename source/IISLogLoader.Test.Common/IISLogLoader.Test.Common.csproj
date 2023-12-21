@@ -7,10 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="TestAssets\InvalidLogFile.log" />
     <None Remove="TestAssets\LogFile.log" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="TestAssets\InvalidLogFile.log" />
     <EmbeddedResource Include="TestAssets\LogFile.log" />
   </ItemGroup>
 

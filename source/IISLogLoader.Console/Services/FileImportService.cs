@@ -1,4 +1,5 @@
 ﻿using IISLogLoader.Common.Data;
+using IISLogLoader.Common.Models;
 using IISLogLoader.Console.Models;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace IISLogLoader.Console.Services
 {
     public interface IFileImportService
     {
-        Task ImportLogFile(ILogDbContext dbContext, string filePath);
+        Task<LogFileLoadResult> ImportLogFile(ILogDbContext dbContext, string filePath);
     }
 
     public class FileImportService : IFileImportService
@@ -24,11 +25,15 @@ namespace IISLogLoader.Console.Services
             _fileLoadService = fileLoadService;
         }
 
-        public async Task ImportLogFile(ILogDbContext dbContext, string filePath)
+        public async Task<LogFileLoadResult> ImportLogFile(ILogDbContext dbContext, string filePath)
         {
-            var events = await _fileLoadService.LoadFile(filePath);
-            await dbContext.DeleteLogData(filePath);
-            await dbContext.SaveLogData(events);
+            var loadResult = _fileLoadService.LoadFile(filePath);
+            if (loadResult.Success)
+            {
+                await dbContext.DeleteLogData(filePath);
+                await dbContext.SaveLogData(loadResult.LogEvents!);
+            }
+            return loadResult;
         }
     }
 }

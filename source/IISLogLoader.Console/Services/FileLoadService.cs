@@ -10,7 +10,7 @@ namespace IISLogLoader.Console.Services
     {
         Task<IEnumerable<FileInfoWrapper>> FindModifiedFiles(string folder, string fileSearchPattern, Journal journal);
 
-        Task<IEnumerable<LogEvent>> LoadFile(string filePath);
+        LogFileLoadResult LoadFile(string filePath);
     }
 
     public class FileLoadService : IFileLoadService
@@ -42,9 +42,22 @@ namespace IISLogLoader.Console.Services
             return await Task.FromResult(modifiedFiles);
         }
 
-        public async Task<IEnumerable<LogEvent>> LoadFile(string filePath)
+        public LogFileLoadResult LoadFile(string filePath)
         {
-            return await Task.Run(() => LogEventMapper.MapFromW3CEvents(filePath, W3CEnumerable.FromFile(filePath)));
+            LogFileLoadResult result = new LogFileLoadResult();
+            try
+            {
+                var events = W3CEnumerable.FromFile(filePath);
+                events.Count();     // must be called to force the enumeration check - throws an error for invalid log files
+                result.LogEvents = LogEventMapper.MapFromW3CEvents(filePath, events);
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                result.ErrorMessage = ex.Message;
+                result.Success = false;
+            }
+            return result;
         }
 
 

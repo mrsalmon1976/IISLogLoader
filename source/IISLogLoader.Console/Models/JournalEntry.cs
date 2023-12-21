@@ -18,5 +18,10 @@ namespace IISLogLoader.Console.Models
         public DateTime LastModified { get; set; }
 
         public long Length { get; set; }
+
+        public virtual bool Success { get; set; }
+
+        public virtual string? ErrorMessage { get; set; }
+
     }
 }

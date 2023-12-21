@@ -35,7 +35,7 @@ namespace IISLogLoader.Console.Models
             return this.Files.SingleOrDefault(x => x.FilePath == filePath);
         }
 
-        public virtual void Update(FileInfoWrapper fileInfo)
+        public virtual void Update(FileInfoWrapper fileInfo, bool success, string? errorMessage)
         {
             JournalEntry? journalEntry = GetEntry(fileInfo.FullName);
             if (journalEntry == null)
@@ -46,6 +46,8 @@ namespace IISLogLoader.Console.Models
             journalEntry.Length = fileInfo.Length;
             journalEntry.LastModified = fileInfo.LastWriteTime;
             journalEntry.FilePath = fileInfo.FullName;
+            journalEntry.Success = success;
+            journalEntry.ErrorMessage = errorMessage;
         }
 
     }
