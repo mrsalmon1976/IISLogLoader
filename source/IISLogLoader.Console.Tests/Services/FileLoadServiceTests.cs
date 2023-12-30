@@ -4,6 +4,7 @@ using IISLogLoader.Console.Models;
 using IISLogLoader.Console.Services;
 using IISLogLoader.Test.Common;
 using IISLogLoader.Test.Common.TestAssets;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
 using System;
@@ -184,7 +185,7 @@ namespace IISLogLoader.Console.Tests.Services
         }
 
         [Test]
-        public void LoadFile_OnFailure_SuccessIsFalse()
+        public void LoadFile_OnW3CEnumerableFailure_Success()
         {
             // setup
             string logFilePath = Path.ChangeExtension(Path.Combine(TestFolder, Path.GetRandomFileName()), ".log");
@@ -196,17 +197,16 @@ namespace IISLogLoader.Console.Tests.Services
             LogFileLoadResult loadResult = fileLoadService.LoadFile(logFilePath);
 
             // assert
-            Assert.That(loadResult.Success, Is.False);
-            Assert.That(loadResult.ErrorMessage, Is.Not.Null);
-            Assert.That(loadResult.ErrorMessage, Is.Not.Empty);
-            Assert.That(loadResult.LogEvents, Is.Null);
+            Assert.That(loadResult.Success, Is.True);
+            Assert.That(loadResult.LogEvents!.Count(), Is.EqualTo(0));
         }
 
         private IFileLoadService CreateService(IDirectoryWrapper? dirWrapper = null, IFileWrapper? fileWrapper = null)
         {
+            ILogger<FileLoadService> logger = new SubstituteBuilder<ILogger<FileLoadService>>().Build();
             dirWrapper ??= new SubstituteBuilder<IDirectoryWrapper>().Build();
             fileWrapper ??= new SubstituteBuilder<IFileWrapper>().Build();
-            return new FileLoadService(dirWrapper, fileWrapper);
+            return new FileLoadService(logger, dirWrapper, fileWrapper);
         }
 
 

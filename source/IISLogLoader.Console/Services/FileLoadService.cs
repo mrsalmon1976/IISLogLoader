@@ -2,6 +2,8 @@
 using IISLogLoader.Common.Models;
 using IISLogLoader.Common.Models.Mappers;
 using IISLogLoader.Console.Models;
+using IISLogParser;
+using Microsoft.Extensions.Logging;
 using Tx.Windows;
 
 namespace IISLogLoader.Console.Services
@@ -15,11 +17,13 @@ namespace IISLogLoader.Console.Services
 
     public class FileLoadService : IFileLoadService
     {
+        private readonly ILogger<FileLoadService> _logger;
         private readonly IDirectoryWrapper _directoryUtility;
         private readonly IFileWrapper _fileWrapper;
 
-        public FileLoadService(IDirectoryWrapper directoryUtility, IFileWrapper fileWrapper)
+        public FileLoadService(ILogger<FileLoadService> logger, IDirectoryWrapper directoryUtility, IFileWrapper fileWrapper)
         {
+            _logger = logger;
             _directoryUtility = directoryUtility;
             _fileWrapper = fileWrapper;
         }
@@ -45,6 +49,7 @@ namespace IISLogLoader.Console.Services
         public LogFileLoadResult LoadFile(string filePath)
         {
             LogFileLoadResult result = new LogFileLoadResult();
+
             try
             {
                 var events = W3CEnumerable.FromFile(filePath);
@@ -54,9 +59,34 @@ namespace IISLogLoader.Console.Services
             }
             catch (Exception ex)
             {
+                _logger.LogWarning("File load failed using Tx.Windows.W3CEnumerable: {message}", ex.Message);
                 result.ErrorMessage = ex.Message;
                 result.Success = false;
             }
+
+            if (!result.Success)
+            {
+                try
+                {
+                    List<IISLogEvent> logs = new List<IISLogEvent>();
+                    using (ParserEngine parser = new ParserEngine(filePath))
+                    {
+                        while (parser.MissingRecords)
+                        {
+                            logs = parser.ParseLog().ToList();
+                        }
+                    }
+                    result.LogEvents = LogEventMapper.MapFromIISLogEvents(filePath, logs);
+                    result.Success = true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("File load failed using IISLogParser.ParserEngine: {message}", ex.Message);
+                    result.ErrorMessage = ex.Message;
+                    result.Success = false;
+                }
+            }
+
             return result;
         }
 

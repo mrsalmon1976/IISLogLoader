@@ -27,5 +27,15 @@ namespace IISLogLoader.Common.Utils
             }
             return null;
         }
+
+        public static long? TryGetLong(int? val)
+        {
+            if (val == null)
+            {
+                return null;
+            }
+            return Convert.ToInt64(val);
+        }
+
     }
 }

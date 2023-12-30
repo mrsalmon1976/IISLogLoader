@@ -1,4 +1,5 @@
 ﻿using IISLogLoader.Common.Utils;
+using IISLogParser;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -42,11 +43,47 @@ namespace IISLogLoader.Common.Models.Mappers
             return logEvent;
         }
 
+        public static LogEvent MapFromIISLogEvent(string filePath, IISLogEvent iisEvent)
+        {
+            LogEvent logEvent = new LogEvent()
+            {
+                FilePath = filePath,
+                DateTime = iisEvent.DateTimeEvent,
+                ClientIpAddress = iisEvent.cIp,
+                BytesReceived = ConversionUtils.TryGetLong(iisEvent.csBytes),
+                Cookie = iisEvent.csCookie,
+                Host = iisEvent.csHost,
+                Method = iisEvent.csMethod,
+                Referrer = iisEvent.csReferer,
+                UriQuery = iisEvent.csUriQuery,
+                UriStem = iisEvent.csUriStem,
+                UserAgent = iisEvent.csUserAgent,
+                UserName = iisEvent.csUsername,
+                ProtocolVersion = iisEvent.csVersion,
+                ServerName = iisEvent.sComputername,
+                ServerIpAddress = iisEvent.sIp,
+                ServerPort = iisEvent.sPort,
+                SiteName = iisEvent.sSitename,
+                BytesSent = ConversionUtils.TryGetLong(iisEvent.scBytes),
+                StatusCode = iisEvent.scStatus,
+                ProtocolSubstatus = (iisEvent.scSubstatus == null ? "" : iisEvent.scWin32Status.ToString()),
+                WindowsStatusCode = (iisEvent.scWin32Status == null ? "" : iisEvent.scWin32Status.ToString()),
+                TimeTaken = iisEvent.timeTaken
+            };
+
+            return logEvent;
+        }
+
         public static IEnumerable<LogEvent> MapFromW3CEvents(string filePath, IEnumerable<W3CEvent> iisEvents)
         {
             return iisEvents.Select(x => MapFromW3CEvent(filePath, x));
         }
 
-       
+        public static IEnumerable<LogEvent> MapFromIISLogEvents(string filePath, IEnumerable<IISLogEvent> iisEvents)
+        {
+            return iisEvents.Select(x => MapFromIISLogEvent(filePath, x));
+        }
+
+
     }
 }

@@ -33,6 +33,7 @@ namespace IISLogLoader.Common.Data
             string sql = $"DELETE FROM {_tableName} WHERE FilePath = @FilePath";
             using (SqlCommand cmd = new SqlCommand(sql, _sqlConnection))
             {
+                cmd.CommandTimeout = 600;
                 cmd.Parameters.Add(new SqlParameter("@FilePath", filePath));
                 cmd.Transaction = _transaction;
                 await cmd.ExecuteNonQueryAsync();
